@@ -4,6 +4,13 @@ typedef struct
     vec scale;
 }transform;
 
+mat4 get_model(transform transform)
+{
+    mat4 pos = translate_mat4(transform.pos);
+    mat4 scale = scale_mat4(transform.scale);
+    return multiply_mat4(pos, scale);
+}
+
 typedef struct
 {
     enum
@@ -18,7 +25,18 @@ typedef struct
     GLuint VBO[NUM_BUFFERS];
 }mesh;
 
-typedef unsigned int shader;
+typedef struct
+{
+    enum
+    {
+        TRANSFORM_U,
+
+        NUM_UNIFORMS
+    };
+    GLuint program;
+    GLuint uniforms[NUM_UNIFORMS];
+}shader;
+
 typedef unsigned int texture;
 
 typedef struct

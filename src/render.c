@@ -57,6 +57,13 @@ const char *read_file(const char *filename)
     return buffer;
 }
 
+int str_len(const char *s)
+{
+    int i;
+    for(i = 0; s[i] != '\0'; ++i);
+    return i;
+}
+
 void check_shader_error(GLuint shader, GLuint flag, bool isProgram, char *errorMessage)
 {
     GLuint success = 0;
@@ -88,8 +95,8 @@ GLuint create_shader(const char *filename, GLenum shaderType)
 
     const GLchar *p[1];
     p[0] = read_file(filename);
-    const char *test = read_file(filename);
-    glShaderSource(shader, 1, p, NULL);
+    int program_length = str_len(p[0]);
+    glShaderSource(shader, 1, p, &program_length);
     glCompileShader(shader);
     check_shader_error(shader, GL_COMPILE_STATUS, false, "ERROR: Shader compilation failed");
 
@@ -98,7 +105,8 @@ GLuint create_shader(const char *filename, GLenum shaderType)
 
 shader create_shader_program(const char *filename)
 {
-    shader result = glCreateProgram();
+    shader result = {};
+    result.program = glCreateProgram();
 
     char vertbuffer[256];
     strcpy(vertbuffer, filename);
@@ -109,24 +117,40 @@ shader create_shader_program(const char *filename)
     strcat(fragbuffer, ".fs");
     GLuint fragmentShader = create_shader(fragbuffer, GL_FRAGMENT_SHADER);
 
-    glAttachShader(result, vertexShader);
-    glAttachShader(result, fragmentShader);
+    glAttachShader(result.program, vertexShader);
+    glAttachShader(result.program, fragmentShader);
 
-    glBindAttribLocation(result, 0, "position");
-    glBindAttribLocation(result, 1, "texCoord");
+    glBindAttribLocation(result.program, 0, "position");
+    glBindAttribLocation(result.program, 1, "texCoord");
 
-    glLinkProgram(result);
-    check_shader_error(result, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
+    glLinkProgram(result.program);
+    check_shader_error(result.program, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
 
-    glValidateProgram(result);
-    check_shader_error(result, GL_VALIDATE_STATUS, true, "ERROR: Shader Program invalid");
+    glValidateProgram(result.program);
+    check_shader_error(result.program, GL_VALIDATE_STATUS, true, "ERROR: Shader Program invalid");
+
+    result.uniforms[TRANSFORM_U] = glGetUniformLocation(result.program, "model");
+    if(result.uniforms[TRANSFORM_U] == -1)
+    {
+        fprintf(stderr, "Cannot find transform uniform\n");
+    }
 
     return result;
 }
 
 void bind_shader(shader shader)
 {
-    glUseProgram(shader);
+    glUseProgram(shader.program);
+}
+
+void update_shader(shader shader, transform transform)
+{
+    mat4 model = get_model(transform);
+    for(int i = 0; i < 16; ++i)
+    {
+        //printf("%d: %f\n", i, model.e[i]);
+    }
+    glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &model.e[0]);
 }
 
 texture create_texture(const char *filename)
@@ -190,4 +214,10 @@ sprite create_sprite(vec pos, vec dim, const char *path)
     result.texture = create_texture(path);
 
     return result;
+}
+
+void draw_sprite(sprite sprite)
+{
+    bind_texture(sprite.texture, 0);
+    draw_mesh(sprite.mesh);
 }
