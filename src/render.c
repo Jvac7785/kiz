@@ -134,6 +134,11 @@ shader create_shader_program(const char *filename)
     {
         fprintf(stderr, "Cannot find transform uniform\n");
     }
+    result.uniforms[PR_U] = glGetUniformLocation(result.program, "pr");
+    if(result.uniforms[PR_U] == -1)
+    {
+        fprintf(stderr, "Cannot find pr uniform\n");
+    }
 
     return result;
 }
@@ -143,14 +148,11 @@ void bind_shader(shader shader)
     glUseProgram(shader.program);
 }
 
-void update_shader(shader shader, transform transform)
+void update_shader(shader shader, transform transform, camera camera)
 {
     mat4 model = get_model(transform);
-    for(int i = 0; i < 16; ++i)
-    {
-        //printf("%d: %f\n", i, model.e[i]);
-    }
     glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &model.e[0]);
+    glUniformMatrix4fv(shader.uniforms[PR_U], 1, GL_FALSE, &camera.matrix.e[0]);
 }
 
 texture create_texture(const char *filename)

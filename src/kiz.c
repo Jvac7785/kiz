@@ -7,9 +7,12 @@ void update(float delta, game_memory *memory)
         vec pos = {0.8f, 0.0f};
         vec dim = {0.5f, 0.5f};
         gameState->sprite = create_sprite(pos, dim, "./res/test.png");
+        gameState->camera = create_camera(1, 1);
         memory->isInit = true;
     }
+    update_input(&gameState->input);
     bind_shader(gameState->shader);
-    update_shader(gameState->shader, gameState->sprite.transform);
+    update_camera(&gameState->camera);
+    update_shader(gameState->shader, gameState->sprite.transform, gameState->camera);
     draw_sprite(gameState->sprite);
 }

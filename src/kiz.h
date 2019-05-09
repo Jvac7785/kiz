@@ -10,8 +10,10 @@ typedef struct
 
 typedef struct
 {
+    input input;
     shader shader;
     sprite sprite;
+    camera camera;
 }game_state;
 
 #endif

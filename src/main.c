@@ -7,7 +7,9 @@
 #include <GLFW/glfw3.h>
 
 #include "math.h"
+#include "camera.c"
 #include "render.c"
+#include "input.h"
 #include "kiz.h"
 #include "window.c"
 #include "kiz.c"

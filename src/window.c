@@ -2,6 +2,11 @@
 
 GLFWwindow *window;
 
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    keys[key] = action != GLFW_RELEASE;
+}
+
 int window_init(int width, int height, char *title)
 {
     if(!glfwInit())
@@ -27,6 +32,7 @@ int window_init(int width, int height, char *title)
         return -1;
     }
 
+    glfwSetKeyCallback(window, key_callback);
     return 1;
 }
 
@@ -44,7 +50,7 @@ void window_update(void (*update)(float, game_memory*), game_memory *memory)
     glfwSwapBuffers(window);
     glfwPollEvents();
     double now = glfwGetTime();
-    delta = (float)(now - last) * 10.0f;
+    delta = (float)(now - last);
 }
 
 int window_should_close()

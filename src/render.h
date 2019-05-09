@@ -30,6 +30,7 @@ typedef struct
     enum
     {
         TRANSFORM_U,
+        PR_U,
 
         NUM_UNIFORMS
     };
