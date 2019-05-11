@@ -80,7 +80,7 @@ void check_shader_error(GLuint shader, GLuint flag, bool isProgram, char *errorM
         else
             glGetShaderInfoLog(shader, sizeof(error), NULL, error);
 
-        fprintf(stderr, "%s: %s\n", errorMessage, error);
+        log_fatal("%s: %s\n", errorMessage, error);
     }
 }
 
@@ -90,7 +90,7 @@ GLuint create_shader(const char *filename, GLenum shaderType)
 
     if(shader == 0)
     {
-        fprintf(stderr, "Shader creation failed\n");
+        log_fatal("Shader creation failed\n");
     }
 
     const GLchar *p[1];
@@ -132,12 +132,12 @@ shader create_shader_program(const char *filename)
     result.uniforms[TRANSFORM_U] = glGetUniformLocation(result.program, "model");
     if(result.uniforms[TRANSFORM_U] == -1)
     {
-        fprintf(stderr, "Cannot find transform uniform\n");
+        log_fatal("Cannot find transform uniform\n");
     }
     result.uniforms[PR_U] = glGetUniformLocation(result.program, "pr");
     if(result.uniforms[PR_U] == -1)
     {
-        fprintf(stderr, "Cannot find pr uniform\n");
+        log_fatal("Cannot find pr uniform\n");
     }
 
     return result;
@@ -162,7 +162,7 @@ texture create_texture(const char *filename)
 
     if(data == NULL)
     {
-        fprintf(stderr, "Cannot load texture: %s", filename);
+        log_fatal("Cannot load texture: %s", filename);
     }
 
     texture result = 0;
