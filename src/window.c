@@ -7,7 +7,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     keys[key] = action != GLFW_RELEASE;
 }
 
-int window_init(int width, int height, char *title)
+int window_init(int width, int height, const char *title)
 {
     if(!glfwInit())
     {
