@@ -1,0 +1,4 @@
+# ignore log
+*.log
+bin/kiz
+src/kiz.ctm
