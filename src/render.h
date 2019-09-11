@@ -46,3 +46,9 @@ typedef struct
     mesh mesh;
     texture texture;
 }sprite;
+
+typedef struct
+{
+    shader shader;
+    camera camera;
+}context;
