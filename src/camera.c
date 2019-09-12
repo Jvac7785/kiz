@@ -8,11 +8,11 @@ typedef struct
     mat4 matrix;
 }camera;
 
-camera create_camera(float right, float top)
+camera create_camera(float x, float y, float scale)
 {
-    camera result = {{0.0f, 0.0f}, {0.0f, 0.0f}, 1.0f, 1.0f, create_mat4(), create_mat4()};
+    camera result = {{0.0f, 0.0f}, {x, y}, 1.0f, scale, create_mat4(), create_mat4()};
 
-    result.orthoMatrix = create_ortho_mat4(0.0f, right, 0.0f, top, -1.0f, 1.0f);
+    result.orthoMatrix = create_ortho_mat4(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 
     return result;
 }
