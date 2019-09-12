@@ -1,3 +1,29 @@
+typedef struct
+{
+    unsigned int id;
+    // Have all components possible here
+    // Have a bool to see if they are on
+    // example:
+    //pos_componenet pos
+    //bool posOn
+}entity;
+
+//Does this need to be a struct
+//It can probably just be the buffer of entities
+typedef struct 
+{
+    //TODO: Implement(steal) Stretchy buffers for dynamic amount of entities in world
+}world;
+
+//Systems will take a pointer to the world
+//They will then loop through the world to see
+//if the entity needs to go through the system
+//This allows for dynamic entity amount with all
+//entities able to change their components at runtime
+//Posible optimisations may be:
+//threading
+//partition trees so you dont loop through all entities per system per frame
+
 void update(float delta, game_memory *memory)
 {
     game_state *gameState = (game_state *)memory->storage;
@@ -35,7 +61,7 @@ void update(float delta, game_memory *memory)
         {
             if(level[y][x])
             {
-                vec pos = {0.5f * x, 0.5f * y};
+                vec pos = {0.5f * x, 0.5f * -y};
                 vec dim = {0.5f, 0.5f};
                 sprite tile = create_sprite(pos, dim, "./res/tile.png");
                 render_sprite(&gameState->ctx, tile);
