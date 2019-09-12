@@ -7,7 +7,6 @@ void update(float delta, game_memory *memory)
         vec pos = {0.0f, 0.0f};
         vec dim = {0.5f, 0.5f};
         gameState->sprite = create_sprite(pos, dim, "./res/test.png");
-        initfont("./res/pcsenior.ttf");
         memory->isInit = true;
     }
     update_input(&gameState->input);
