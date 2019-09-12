@@ -19,7 +19,7 @@ camera create_camera(float x, float y, float scale)
 
 void move_camera(camera *camera, float x, float y)
 {
-    camera->deltaPos.x += x; camera->deltaPos.y += y;
+    camera->deltaPos.x -= x; camera->deltaPos.y -= y;
     camera->pos.x += x; camera->pos.y += y;
 }
 
