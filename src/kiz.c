@@ -10,7 +10,7 @@ typedef struct
 
 //Does this need to be a struct
 //It can probably just be the buffer of entities
-typedef struct 
+typedef struct
 {
     //TODO: Implement(steal) Stretchy buffers for dynamic amount of entities in world
 }world;
@@ -29,15 +29,15 @@ void update(float delta, game_memory *memory)
     game_state *gameState = (game_state *)memory->storage;
     if(!memory->isInit)
     {
-        gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(3, 0, 0.25f));
+        gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 0.1f));
         vec pos = {0.0f, 0.0f};
-        vec dim = {0.5f, 0.5f};
+        vec dim = {3.0f, 3.0f};
         gameState->sprite = create_sprite(pos, dim, "./res/test.png");
 
         memory->isInit = true;
     }
 
-    unsigned int level[9][16] = 
+    unsigned int level[9][16] =
     {
         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
         {0,0,1,1,1,1,0,1,1,1,1,1,1,1,1,0},
@@ -53,9 +53,21 @@ void update(float delta, game_memory *memory)
     update_input(&gameState->input);
     float vert = gameState->input.axis[VERT_AXIS];
     float horiz = gameState->input.axis[HORIZ_AXIS];
-    move_camera(&gameState->ctx.camera, horiz * delta, vert * delta);
-    gameState->sprite.transform.pos.x += horiz * delta;
-    gameState->sprite.transform.pos.y += vert * delta;
+    vec move = {horiz, vert};
+    if(move.x > 0 || move.x < 0 || move.y > 0 || move.y < 0)
+        normilize_vec(&move);
+    gameState->sprite.transform.pos.x += move.x * delta * 2.0f;
+    gameState->sprite.transform.pos.y += move.y * delta * 2.0f;
+    set_camera_pos(&gameState->ctx.camera, gameState->sprite.transform.pos.x, gameState->sprite.transform.pos.y);
+
+    static int frame = 0;
+    if(frame == 30)
+    {
+        printf("cam: %f\n", gameState->ctx.camera.pos.x);
+        printf("player: %f\n", gameState->sprite.transform.pos.x);
+        frame = 0;
+    }
+    frame++;
 
     for(int y = 0; y < 9; ++y)
     {
@@ -63,8 +75,8 @@ void update(float delta, game_memory *memory)
         {
             if(level[y][x])
             {
-                vec pos = {0.5f * x, 0.5f * -y};
-                vec dim = {0.5f, 0.5f};
+                vec pos = {3.0f * x, 3.0f * -y};
+                vec dim = {3.0f, 3.0f};
                 sprite tile = create_sprite(pos, dim, "./res/tile.png");
                 render_sprite(&gameState->ctx, tile);
             }

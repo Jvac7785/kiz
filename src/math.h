@@ -4,6 +4,13 @@ typedef struct
     float y;
 }vec;
 
+void normilize_vec(vec* p)
+{
+    float l = sqrt(p->x * p->x + p->y * p->y);
+    p->x = p->x / l;
+    p->y = p->y / l;
+}
+
 typedef struct
 {
     float e[16];
@@ -58,16 +65,16 @@ mat4 scale_mat4(vec v)
 mat4 multiply_mat4(mat4 a, mat4 b)
 {
     mat4 result = create_mat4();
-    for(int i = 0; i < 4; i++)
+    for(int y = 0; y < 4; y++)
     {
-        for(int j = 0; j < 4; j++)
+        for(int x = 0; x < 4; x++)
         {
-            float sum = 0.0;
-            for(int k = 0; k < 4; k++)
+            float sum = 0.0f;
+            for(int e = 0; e < 4; e++)
             {
-                sum += b.e[i + k *4] * a.e[k + j * 4];
+                sum += a.e[e + y * 4] * b.e[x + e * 4];
             }
-            result.e[i + j * 4] = sum;
+            result.e[x + y * 4] = sum;
         }
     }
 

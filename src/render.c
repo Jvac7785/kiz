@@ -120,8 +120,8 @@ shader create_shader_program(const char *filename)
     glAttachShader(result.program, vertexShader);
     glAttachShader(result.program, fragmentShader);
 
-    glBindAttribLocation(result.program, 0, "position");
-    glBindAttribLocation(result.program, 1, "texCoord");
+    //glBindAttribLocation(result.program, 0, "position");
+    //glBindAttribLocation(result.program, 1, "texCoord");
 
     glLinkProgram(result.program);
     check_shader_error(result.program, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
@@ -152,7 +152,7 @@ void update_shader(shader shader, transform transform, camera camera)
 {
     mat4 model = get_model(transform);
     glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &model.e[0]);
-    glUniformMatrix4fv(shader.uniforms[PR_U], 1, GL_FALSE, &camera.matrix.e[0]);
+    glUniformMatrix4fv(shader.uniforms[PR_U], 1, GL_FALSE, &camera.cameraMatrix.e[0]);
 }
 
 texture create_texture(const char *filename)
