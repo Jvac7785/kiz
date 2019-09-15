@@ -120,8 +120,8 @@ shader create_shader_program(const char *filename)
     glAttachShader(result.program, vertexShader);
     glAttachShader(result.program, fragmentShader);
 
-    //glBindAttribLocation(result.program, 0, "position");
-    //glBindAttribLocation(result.program, 1, "texCoord");
+    glBindAttribLocation(result.program, 0, "position");
+    glBindAttribLocation(result.program, 1, "texCoord");
 
     glLinkProgram(result.program);
     check_shader_error(result.program, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
@@ -129,15 +129,10 @@ shader create_shader_program(const char *filename)
     glValidateProgram(result.program);
     check_shader_error(result.program, GL_VALIDATE_STATUS, true, "ERROR: Shader Program invalid");
 
-    result.uniforms[TRANSFORM_U] = glGetUniformLocation(result.program, "model");
+    result.uniforms[TRANSFORM_U] = glGetUniformLocation(result.program, "MVP");
     if(result.uniforms[TRANSFORM_U] == -1)
     {
         log_fatal("Cannot find transform uniform\n");
-    }
-    result.uniforms[PR_U] = glGetUniformLocation(result.program, "pr");
-    if(result.uniforms[PR_U] == -1)
-    {
-        log_fatal("Cannot find pr uniform\n");
     }
 
     return result;
@@ -151,8 +146,8 @@ void bind_shader(shader shader)
 void update_shader(shader shader, transform transform, camera camera)
 {
     mat4 model = get_model(transform);
+    model = multiply_mat4(model, camera.cameraMatrix);
     glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &model.e[0]);
-    glUniformMatrix4fv(shader.uniforms[PR_U], 1, GL_FALSE, &camera.cameraMatrix.e[0]);
 }
 
 texture create_texture(const char *filename)
