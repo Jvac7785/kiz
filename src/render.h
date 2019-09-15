@@ -1,12 +1,6 @@
-typedef struct
+mat4 get_model(vec transform)
 {
-    vec pos;
-    vec scale;
-}transform;
-
-mat4 get_model(transform transform)
-{
-    mat4 pos = translate_mat4(transform.pos);
+    mat4 pos = translate_mat4(transform);
     return pos;
 }
 
@@ -41,7 +35,7 @@ typedef unsigned int texture;
 
 typedef struct
 {
-    transform transform;
+    vec pos;
     mesh mesh;
     texture texture;
 }sprite;

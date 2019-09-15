@@ -143,9 +143,9 @@ void bind_shader(shader shader)
     glUseProgram(shader.program);
 }
 
-void update_shader(shader shader, transform transform, camera camera)
+void update_shader(shader shader, vec pos, camera camera)
 {
-    mat4 MVP = get_model(transform);
+    mat4 MVP = get_model(pos);
     MVP = multiply_mat4(MVP, camera.viewMatrix);
     MVP = multiply_mat4(MVP, camera.projectionMatrix);
     //MVP = camera.viewMatrix;
@@ -187,8 +187,7 @@ void bind_texture(texture texture, unsigned int unit)
 sprite create_sprite(vec pos, vec dim, const char *path)
 {
     sprite result;
-    result.transform.pos = pos;
-    result.transform.scale = dim;
+    result.pos = pos;
 
     vec vertex_data[] = {
         {-dim.x / 2.0, -dim.y / 2.0},
@@ -269,7 +268,7 @@ context create_context(shader shader, camera camera)
 void render_sprite(context *ctx, sprite sprite)
 {
     bind_shader(ctx->shader);
-    update_shader(ctx->shader, sprite.transform, ctx->camera);
+    update_shader(ctx->shader, sprite.pos, ctx->camera);
 
     draw_sprite(sprite);
 }
