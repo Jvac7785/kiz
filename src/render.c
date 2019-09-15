@@ -146,7 +146,8 @@ void bind_shader(shader shader)
 void update_shader(shader shader, transform transform, camera camera)
 {
     mat4 model = get_model(transform);
-    model = multiply_mat4(model, camera.cameraMatrix);
+    model = multiply_mat4(model, camera.viewMatrix);
+    model = multiply_mat4(model, camera.projectionMatrix);
     glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &model.e[0]);
 }
 
@@ -266,7 +267,6 @@ context create_context(shader shader, camera camera)
 void render_sprite(context *ctx, sprite sprite)
 {
     bind_shader(ctx->shader);
-    update_camera(&ctx->camera);
     update_shader(ctx->shader, sprite.transform, ctx->camera);
 
     draw_sprite(sprite);

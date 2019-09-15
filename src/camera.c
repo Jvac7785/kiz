@@ -1,60 +1,51 @@
 typedef struct
 {
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
     vec pos;
+    float rotation;
     float scale;
-    mat4 orthoMatrix;
-    mat4 cameraMatrix;
-    bool doUpdate;
-    float width; float height;
 }camera;
+
+void recalculate_view_matrix(camera* camera)
+{
+    mat4 transform = translate_mat4(camera->pos);
+    //TODO: Rotation
+    vec scale = {camera->scale, camera->scale};
+    mat4 scaleM = scale_mat4(scale);
+    transform = multiply_mat4(transform, scaleM);
+
+    camera->viewMatrix = inverse_mat4(transform);
+}
 
 camera create_camera(float x, float y, int width, int height, float scale)
 {
-    camera result = {{x, y}, scale, create_mat4(), create_mat4(), true, width, height};
+    camera result = {0};
 
-    result.orthoMatrix = create_ortho_mat4(-width, width, -height, height, -1.0f, 1.0f);
-    result.cameraMatrix = create_mat4();
+    result.projectionMatrix = create_ortho_mat4(-width, width, -height, height);
+    result.scale = scale;
+    vec pos = {x, y};
+    result.pos = pos;
+    recalculate_view_matrix(&result);
+
     return result;
-}
-
-void move_camera(camera *camera, float x, float y)
-{
-    camera->pos.x += x; camera->pos.y += y;
-    camera->doUpdate = true;
 }
 
 void set_camera_pos(camera *camera, float x, float y)
 {
     camera->pos.x = x; camera->pos.y = y;
-    camera->doUpdate = true;
+    recalculate_view_matrix(camera);
 }
 
-void scale_camera(camera *camera, float scale)
+void set_camera_scale(camera *camera, float scale)
 {
-    camera->scale += scale;
-    camera->doUpdate = true;
+    camera->scale = scale;
+    recalculate_view_matrix(camera);
 }
 
-void update_camera(camera *camera)
+void set_camera_rot(camera *camera, float rotation)
 {
-    if(camera->doUpdate)
-    {
-        /*
-        vec scaleVec = {camera->scale, camera->scale};
-        mat4 scale = scale_mat4(scaleVec);
-        camera->cameraMatrix = multiply_mat4(camera->orthoMatrix, scale);
-        vec transform = {-camera->pos.x, - camera->pos.y};
-        mat4 translate = translate_mat4(transform);
-        camera->cameraMatrix = multiply_mat4(camera->cameraMatrix, translate);
-        camera->doUpdate = false;
-        */ 
-        vec transform = {-camera->pos.x*camera->scale/2, -camera->pos.y*camera->scale/2};
-        mat4 translate = translate_mat4(transform);
-        camera->cameraMatrix = multiply_mat4(camera->orthoMatrix, translate);
-        vec scaleVec = {camera->scale, camera->scale};
-        mat4 scale = scale_mat4(scaleVec);
-        camera->cameraMatrix = multiply_mat4(camera->cameraMatrix, scale);
-        camera->doUpdate = false;
-        
-    }
+    camera->rotation = rotation;
+    recalculate_view_matrix(camera);
 }
+
