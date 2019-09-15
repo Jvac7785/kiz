@@ -29,9 +29,9 @@ void update(float delta, game_memory *memory)
     game_state *gameState = (game_state *)memory->storage;
     if(!memory->isInit)
     {
-        gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 1.0f));
+        gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 4.0f));
         vec pos = {0.0f, 0.0f};
-        vec dim = {3.0f, 3.0f};
+        vec dim = {1.0f, 1.0f};
         gameState->sprite = create_sprite(pos, dim, "./res/test.png");
 
         memory->isInit = true;
@@ -56,8 +56,8 @@ void update(float delta, game_memory *memory)
     vec move = {horiz, vert};
     if(move.x > 0 || move.x < 0 || move.y > 0 || move.y < 0)
         normilize_vec(&move);
-    gameState->sprite.transform.pos.x += move.x * delta * 3.0f;
-    gameState->sprite.transform.pos.y += move.y * delta * 3.0f;
+    gameState->sprite.transform.pos.x += move.x * delta * 8.0f;
+    gameState->sprite.transform.pos.y += move.y * delta * 8.0f;
     set_camera_pos(&gameState->ctx.camera, gameState->sprite.transform.pos.x, gameState->sprite.transform.pos.y);
 
     for(int y = 0; y < 9; ++y)

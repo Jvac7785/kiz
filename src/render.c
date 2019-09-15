@@ -145,10 +145,12 @@ void bind_shader(shader shader)
 
 void update_shader(shader shader, transform transform, camera camera)
 {
-    mat4 model = get_model(transform);
-    model = multiply_mat4(model, camera.viewMatrix);
-    model = multiply_mat4(model, camera.projectionMatrix);
-    glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &model.e[0]);
+    mat4 MVP = get_model(transform);
+    MVP = multiply_mat4(MVP, camera.viewMatrix);
+    MVP = multiply_mat4(MVP, camera.projectionMatrix);
+    //MVP = camera.viewMatrix;
+    //MVP = multiply_mat4(MVP, camera.projectionMatrix);
+    glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &MVP.e[0]);
 }
 
 texture create_texture(const char *filename)

@@ -7,8 +7,7 @@ typedef struct
 mat4 get_model(transform transform)
 {
     mat4 pos = translate_mat4(transform.pos);
-    mat4 scale = scale_mat4(transform.scale);
-    return multiply_mat4(pos, scale);
+    return pos;
 }
 
 typedef struct

@@ -13,7 +13,7 @@ void recalculate_view_matrix(camera* camera)
     //TODO: Rotation
     vec scale = {camera->scale, camera->scale};
     mat4 scaleM = scale_mat4(scale);
-    transform = multiply_mat4(transform, scaleM);
+    //transform = multiply_mat4(transform, scaleM);
 
     camera->viewMatrix = inverse_mat4(transform);
 }
@@ -26,6 +26,7 @@ camera create_camera(float x, float y, int width, int height, float scale)
     result.scale = scale;
     vec pos = {x, y};
     result.pos = pos;
+    result.rotation = 0;
     recalculate_view_matrix(&result);
 
     return result;
