@@ -1,20 +1,3 @@
-typedef struct
-{
-    unsigned int id;
-    // Have all components possible here
-    // Have a bool to see if they are on
-    // example:
-    //pos_componenet pos
-    //bool posOn
-}entity;
-
-//Does this need to be a struct
-//It can probably just be the buffer of entities
-typedef struct
-{
-    //TODO: Implement(steal) Stretchy buffers for dynamic amount of entities in world
-}world;
-
 //Systems will take a pointer to the world
 //They will then loop through the world to see
 //if the entity needs to go through the system
@@ -23,6 +6,43 @@ typedef struct
 //Posible optimisations may be:
 //threading
 //partition trees so you dont loop through all entities per system per frame
+world init_world()
+{
+    world result = {0};
+    result.numEntities = 0;
+    return result;
+}
+
+entity create_player(float x, float y, float scale, char *fp)
+{
+    entity result = {0};
+    vec sc = {scale, scale};
+    vec pos = {x, y};
+    transform t = {pos, sc};
+    result.transform = t;
+    result.sprite = create_sprite(pos, sc, fp);
+    result.transformOn = true;
+    result.spriteOn = true;
+    return result;
+}
+
+void add_entity(world *world, entity entity)
+{
+    if(world->numEntities > MAX_ENTITY)
+    {
+        log_fatal("TOO MANY ENTITIES");
+    }
+    else
+    {
+        world->entities[world->numEntities] = entity;
+        world->numEntities++;
+    }
+}
+
+void render_entity(context *ctx, entity entity)
+{
+    render_sprite(ctx, entity.sprite);
+}
 
 void update(float delta, game_memory *memory)
 {
@@ -30,10 +50,10 @@ void update(float delta, game_memory *memory)
     if(!memory->isInit)
     {
         gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 3.0f));
-        vec pos = {0.0f, 0.0f};
-        vec dim = {2.0f, 2.0f};
-        gameState->sprite = create_sprite(pos, dim, "./res/test.png");
+        gameState->world = init_world();
 
+        add_entity(&gameState->world, create_player(0, 0, 2, "./res/test.png"));
+        add_entity(&gameState->world, create_player(2, 0, 1, "./res/test.png"));
         memory->isInit = true;
     }
 
@@ -56,9 +76,9 @@ void update(float delta, game_memory *memory)
     vec move = {horiz, vert};
     if(move.x > 0 || move.x < 0 || move.y > 0 || move.y < 0)
         normilize_vec(&move);
-    gameState->sprite.pos.x += move.x * delta * 8.0f;
-    gameState->sprite.pos.y += move.y * delta * 8.0f;
-    set_camera_pos(&gameState->ctx.camera, gameState->sprite.pos.x, gameState->sprite.pos.y);
+
+    //gameState->sprite.pos.x += move.x * delta * 8.0f;
+    //gameState->sprite.pos.y += move.y * delta * 8.0f;
 
     for(int y = 0; y < 9; ++y)
     {
@@ -73,5 +93,11 @@ void update(float delta, game_memory *memory)
             }
         }
     }
-    render_sprite(&gameState->ctx, gameState->sprite);
+    for(int i = 0; i < gameState->world.numEntities; ++i)
+    {
+        if(gameState->world.entities[i].spriteOn)
+        {
+            render_entity(&gameState->ctx, gameState->world.entities[i]);
+        }
+    }
 }

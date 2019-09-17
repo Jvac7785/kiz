@@ -36,34 +36,6 @@ void draw_mesh(mesh mesh)
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, NULL);
 }
 
-const char *read_file(const char *filename)
-{
-    char *buffer = 0;
-    long length;
-    FILE *f= fopen(filename, "r");
-
-    if(f)
-    {
-        fseek(f, 0, SEEK_END);
-        length = ftell(f);
-        fseek(f, 0, SEEK_SET);
-        buffer = malloc(length);
-        if(buffer)
-        {
-            fread(buffer, 1, length, f);
-        }
-        fclose(f);
-    }
-    return buffer;
-}
-
-int str_len(const char *s)
-{
-    int i;
-    for(i = 0; s[i] != '\0'; ++i);
-    return i;
-}
-
 void check_shader_error(GLuint shader, GLuint flag, bool isProgram, char *errorMessage)
 {
     GLuint success = 0;
