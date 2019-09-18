@@ -20,10 +20,6 @@ typedef struct
 {
     unsigned int id;
     // Have all components possible here
-    // Remeber to NULL CHECK FOR ALL COMPONENTS!!!!
-    // example:
-    //pos_componenet pos
-    //bool posOn
     transform transform;
     bool transformOn;
 

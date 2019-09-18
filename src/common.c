@@ -4,6 +4,8 @@
 #define CLAMP_MIN(x, min) MAX(x, min)
 #define IS_POW2(x) (((x) != 0) && ((x) & ((x)-1)) == 0)
 
+GLFWwindow *window;
+
 const char *read_file(const char *filename)
 {
     char *buffer = 0;

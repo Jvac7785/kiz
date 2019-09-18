@@ -10,6 +10,8 @@ typedef struct
         NUM_AXIS
     };
     float axis[NUM_AXIS];
+    double x;
+    double y;
 }input;
 
 void update_input(input *input)
@@ -38,4 +40,6 @@ void update_input(input *input)
     {
         input->axis[VERT_AXIS] = 0.0f;
     }
+
+    glfwGetCursorPos(window, &input->x, &input->y);
 }
