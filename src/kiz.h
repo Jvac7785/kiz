@@ -25,6 +25,10 @@ typedef struct
 
     sprite sprite;
     bool spriteOn;
+
+    float speed;
+
+    bool playerMove;
 }entity;
 
 typedef struct

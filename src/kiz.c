@@ -13,6 +13,8 @@ entity create_player(float x, float y, float scale, char *fp)
     transform t = {pos, sc};
     result.transform = t;
     result.sprite = create_sprite(pos, sc, fp);
+    result.speed = 8.0f;
+    result.playerMove = true;
     result.transformOn = true;
     result.spriteOn = true;
     return result;
@@ -39,6 +41,7 @@ void add_entity(world *world, entity entity)
     }
     else
     {
+        entity.id = world->numEntities;
         world->entities[world->numEntities] = entity;
         world->numEntities++;
     }
@@ -46,7 +49,20 @@ void add_entity(world *world, entity entity)
 
 void render_entity(context *ctx, entity entity)
 {
+    entity.sprite.pos = entity.transform.pos;
     render_sprite(ctx, entity.sprite);
+}
+
+void player_move(entity *entity, input input, float delta)
+{
+    float horiz = input.axis[HORIZ_AXIS];
+    float vert = input.axis[VERT_AXIS];
+    vec move = {horiz, vert};
+    if(move.x > 0 || move.x < 0 || move.y > 0 || move.y < 0)
+         normilize_vec(&move);
+
+    entity->transform.pos.x += move.x * delta * entity->speed;
+    entity->transform.pos.y += move.y * delta * entity->speed;
 }
 
 void update(float delta, game_memory *memory)
@@ -57,8 +73,7 @@ void update(float delta, game_memory *memory)
         gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 3.0f));
         gameState->world = init_world();
 
-        add_entity(&gameState->world, create_player(0, 0, 2, "./res/test.png"));
-        add_entity(&gameState->world, create_player(2, 0, 1, "./res/test.png"));
+        add_entity(&gameState->world, create_player(3, 0, 2, "./res/test.png"));
         unsigned int level[9][16] =
           {
            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -77,9 +92,7 @@ void update(float delta, game_memory *memory)
             {
                 if(level[y][x])
                 {
-                    vec pos = {3.0f * x, 3.0f * -y};
-                    vec dim = {3.0f, 3.0f};
-                    add_entity(&gameState->world, create_tile(3 * x, 3 * -y, 3.0f, "./res/tile.png"));
+                    add_entity(&gameState->world, create_tile(2 * x, 2 * -y, 2.0f, "./res/tile.png"));
                 }
             }
         }
@@ -87,20 +100,16 @@ void update(float delta, game_memory *memory)
     }
 
     update_input(&gameState->input);
-    float vert = gameState->input.axis[VERT_AXIS];
-    float horiz = gameState->input.axis[HORIZ_AXIS];
-    vec move = {horiz, vert};
-    if(move.x > 0 || move.x < 0 || move.y > 0 || move.y < 0)
-        normilize_vec(&move);
-
-    //gameState->sprite.pos.x += move.x * delta * 8.0f;
-    //gameState->sprite.pos.y += move.y * delta * 8.0f;
 
     for(int i = 0; i < gameState->world.numEntities; ++i)
     {
         if(gameState->world.entities[i].spriteOn)
         {
             render_entity(&gameState->ctx, gameState->world.entities[i]);
+        }
+        if(gameState->world.entities[i].playerMove)
+        {
+            player_move(&gameState->world.entities[i], gameState->input, delta);
         }
     }
 }
