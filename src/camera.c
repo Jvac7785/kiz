@@ -13,7 +13,6 @@ void recalculate_view_matrix(camera* camera)
     //TODO: Rotation
     vec scale = {camera->scale, camera->scale};
     mat4 scaleM = scale_mat4(scale);
-    //transform = multiply_mat4(transform, scaleM);
 
     camera->viewMatrix = inverse_mat4(transform);
 }

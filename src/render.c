@@ -2,38 +2,62 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-mesh create_mesh(vec *pos, vec *texcoords, unsigned char *indices)
+vertex_buffer new_vbo(float *verts, unsigned int size)
 {
-    unsigned int drawCount = 4;
+    vertex_buffer result = {0};
 
-    mesh result = {};
+    glCreateBuffers(1, &result.id);
+    glBindBuffer(GL_ARRAY_BUFFER, result.id);
+    glBufferData(GL_ARRAY_BUFFER, size, verts, GL_STATIC_DRAW);
+}
 
-    glGenVertexArrays(1, &result.VAO);
-    glBindVertexArray(result.VAO);
+index_buffer new_ibo(unsigned int *indices, unsigned int count)
+{
+    index_buffer result = {0};
 
-    glGenBuffers(NUM_BUFFERS, result.VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, result.VBO[POSITION_VB]);
-    glBufferData(GL_ARRAY_BUFFER, drawCount * sizeof(pos[0]), pos, GL_STATIC_DRAW);
+    glCreateBuffers(1, &result.id);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.id);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+}
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+vertex_array new_vao()
+{
+    vertex_array result = {0};
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.VBO[INDICES_VB]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, result.VBO[TEXCOORD_VB]);
-    glBufferData(GL_ARRAY_BUFFER, drawCount * sizeof(texcoords[0]), texcoords, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glGenVertexArrays(1, &result.id);
+    result.vertexBufferIndex = 0;
+    result.vertexBuffers = NULL;
 
     return result;
 }
 
-void draw_mesh(mesh mesh)
+void add_vertex_buffer(vertex_array *vao, vertex_buffer buffer)
 {
-    glBindVertexArray(mesh.VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, NULL);
+    glBindVertexArray(vao->id);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
+
+    buffer_layout layout = buffer.layout;
+    for each(element, layout.elements)
+    {
+        glEnableVertexAttribArray(vao->vertexBufferIndex);
+        glVertexAttribPointer(vao->vertexBufferIndex,
+                              get_component_count(element),
+                              shader_data_type_to_opengl(element.type),
+                              element.normalized ? GL_TRUE: GL_FALSE,
+                              layout.stride,
+                              (void *)element.offset
+                              );
+        vao->vertexBufferIndex++;
+    }
+
+    buf_push(vao->vertexBuffers, buffer);
+}
+
+void add_index_buffer(vertex_array *vao, index_buffer buffer)
+{
+    glBindVertexArray(vao->id);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.id);
+    vao->indexBuffer = buffer;
 }
 
 void check_shader_error(GLuint shader, GLuint flag, bool isProgram, char *errorMessage)
@@ -77,8 +101,8 @@ GLuint create_shader(const char *filename, GLenum shaderType)
 
 shader create_shader_program(const char *filename)
 {
-    shader result = {};
-    result.program = glCreateProgram();
+    shader result = 0;
+    result= glCreateProgram();
 
     char vertbuffer[256];
     strcpy(vertbuffer, filename);
@@ -89,40 +113,24 @@ shader create_shader_program(const char *filename)
     strcat(fragbuffer, ".fs");
     GLuint fragmentShader = create_shader(fragbuffer, GL_FRAGMENT_SHADER);
 
-    glAttachShader(result.program, vertexShader);
-    glAttachShader(result.program, fragmentShader);
+    glAttachShader(result, vertexShader);
+    glAttachShader(result, fragmentShader);
 
-    glBindAttribLocation(result.program, 0, "position");
-    glBindAttribLocation(result.program, 1, "texCoord");
+    glLinkProgram(result);
+    check_shader_error(result, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
 
-    glLinkProgram(result.program);
-    check_shader_error(result.program, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
-
-    glValidateProgram(result.program);
-    check_shader_error(result.program, GL_VALIDATE_STATUS, true, "ERROR: Shader Program invalid");
-
-    result.uniforms[TRANSFORM_U] = glGetUniformLocation(result.program, "MVP");
-    if(result.uniforms[TRANSFORM_U] == -1)
-    {
-        log_fatal("Cannot find transform uniform\n");
-    }
+    glValidateProgram(result);
+    check_shader_error(result, GL_VALIDATE_STATUS, true, "ERROR: Shader Program invalid");
 
     return result;
 }
 
-void bind_shader(shader shader)
-{
-    glUseProgram(shader.program);
-}
-
 void update_shader(shader shader, vec pos, camera camera)
 {
-    mat4 MVP = get_model(pos);
+    mat4 MVP = create_mat4();//get_model(pos);
     MVP = multiply_mat4(MVP, camera.viewMatrix);
     MVP = multiply_mat4(MVP, camera.projectionMatrix);
-    //MVP = camera.viewMatrix;
-    //MVP = multiply_mat4(MVP, camera.projectionMatrix);
-    glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &MVP.e[0]);
+    //glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &MVP.e[0]);
 }
 
 texture create_texture(const char *filename)
@@ -149,98 +157,3 @@ texture create_texture(const char *filename)
     stbi_image_free(data);
 }
 
-void bind_texture(texture texture, unsigned int unit)
-{
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, texture);
-}
-
-//Sprite renderer code
-sprite create_sprite(vec pos, vec dim, const char *path)
-{
-    sprite result;
-    result.pos = pos;
-
-    vec vertex_data[] = {
-        {-dim.x / 2.0, -dim.y / 2.0},
-        {-dim.x / 2.0, dim.y / 2.0},
-        {dim.x / 2.0, dim.y / 2.0},
-        {dim.x / 2.0, -dim.y / 2.0}
-    };
-
-    unsigned char indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    vec tcs[] = {
-        {0, 1},
-        {0, 0},
-        {1, 0},
-        {1, 1}
-    };
-
-    result.mesh = create_mesh(vertex_data, tcs, indices);
-
-    result.texture = create_texture(path);
-
-    return result;
-}
-
-void draw_sprite(sprite sprite)
-{
-    bind_texture(sprite.texture, 0);
-    draw_mesh(sprite.mesh);
-}
-
-unsigned char ttf_buffer[1<<20];
-unsigned char temp_bitmap[512*512];
-
-stbtt_bakedchar cdata[96]; // ASCII 32..126 is 95 glyphs
-GLuint ftex;
-
-void initfont(char *ttf)
-{
-   fread(ttf_buffer, 1, 1<<20, fopen(ttf, "rb"));
-   stbtt_BakeFontBitmap(ttf_buffer,0, 32.0, temp_bitmap,512,512, 32,96, cdata); // no guarantee this fits!
-   // can free ttf_buffer at this point
-   glGenTextures(1, &ftex);
-   glBindTexture(GL_TEXTURE_2D, ftex);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 512,512, 0, GL_ALPHA, GL_UNSIGNED_BYTE, temp_bitmap);
-   // can free temp_bitmap at this point
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-}
-
-void print(float x, float y, char *text)
-{
-   // assume orthographic projection with units = screen pixels, origin at top left
-   glEnable(GL_TEXTURE_2D);
-   glBindTexture(GL_TEXTURE_2D, ftex);
-   glBegin(GL_QUADS);
-   while (*text) {
-      if (*text >= 32 && *text < 128) {
-         stbtt_aligned_quad q;
-         stbtt_GetBakedQuad(cdata, 512,512, *text-32, &x,&y,&q,1);//1=opengl & d3d10+,0=d3d9
-         glTexCoord2f(q.s0,q.t1); glVertex2f(q.x0,q.y0);
-         glTexCoord2f(q.s1,q.t1); glVertex2f(q.x1,q.y0);
-         glTexCoord2f(q.s1,q.t0); glVertex2f(q.x1,q.y1);
-         glTexCoord2f(q.s0,q.t0); glVertex2f(q.x0,q.y1);
-      }
-      ++text;
-   }
-   glEnd();
-}
-
-context create_context(shader shader, camera camera)
-{
-    context result = {shader, camera};
-    return result;
-}
-
-void render_sprite(context *ctx, sprite sprite)
-{
-    bind_shader(ctx->shader);
-    update_shader(ctx->shader, sprite.pos, ctx->camera);
-
-    draw_sprite(sprite);
-}

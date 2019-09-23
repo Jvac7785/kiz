@@ -1,9 +1,7 @@
-#version 130
+#version 330
 
-attribute vec2 position;
-attribute vec2 texCoord;
-
-varying vec2 tc;
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texCoord;
 
 uniform mat4 MVP;
 

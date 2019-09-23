@@ -12,7 +12,7 @@ entity create_player(float x, float y, float scale, char *fp)
     vec pos = {x, y};
     transform t = {pos, sc};
     result.transform = t;
-    result.sprite = create_sprite(pos, sc, fp);
+    //result.sprite = create_sprite(pos, sc, fp);
     result.speed = 8.0f;
     result.playerMove = true;
     result.transformOn = true;
@@ -27,7 +27,7 @@ entity create_tile(float x, float y, float scale, char *fp)
     vec pos = {x, y};
     transform t = {pos, sc};
     result.transform = t;
-    result.sprite = create_sprite(pos, sc, fp);
+    //    result.sprite = create_sprite(pos, sc, fp);
     result.transformOn = true;
     result.spriteOn = true;
     return result;
@@ -50,7 +50,7 @@ void add_entity(world *world, entity entity)
 void render_entity(context *ctx, entity entity)
 {
     entity.sprite.pos = entity.transform.pos;
-    render_sprite(ctx, entity.sprite);
+    //render_sprite(ctx, entity.sprite);
 }
 
 void player_move(entity *entity, input input, float delta)
@@ -65,12 +65,17 @@ void player_move(entity *entity, input input, float delta)
     entity->transform.pos.y += move.y * delta * entity->speed;
 }
 
+void camera_follow(camera *camera, entity entity)
+{
+    set_camera_pos(camera, entity.transform.pos.x, entity.transform.pos.y);
+}
+
 void update(float delta, game_memory *memory)
 {
     game_state *gameState = (game_state *)memory->storage;
     if(!memory->isInit)
     {
-        gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 3.0f));
+        //gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 3.0f));
         gameState->world = init_world();
 
         add_entity(&gameState->world, create_player(3, 0, 2, "./res/test.png"));
@@ -110,6 +115,7 @@ void update(float delta, game_memory *memory)
         if(gameState->world.entities[i].playerMove)
         {
             player_move(&gameState->world.entities[i], gameState->input, delta);
+            camera_follow(&gameState->ctx.camera, gameState->world.entities[i]);
         }
     }
 }
