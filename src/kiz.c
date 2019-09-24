@@ -78,6 +78,35 @@ void update(float delta, game_memory *memory)
         //gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 3.0f));
         gameState->world = init_world();
 
+        vec dim = {3, 3};
+        vec vertex_data[] = {
+                             {-dim.x / 2.0, -dim.y / 2.0},
+                             {-dim.x / 2.0, dim.y / 2.0},
+                             {dim.x / 2.0, dim.y / 2.0},
+                             {dim.x / 2.0, -dim.y / 2.0}
+        };
+
+        unsigned int indicies[] = {
+                                   0, 1, 2,
+                                   2, 3, 0
+        };
+
+        gameState->vao = new_vao();
+
+        buffer_layout bl = new_buffer_layout();
+        buffer_element be = {.name = "position", .type = FLOAT};
+        add_layout(&bl, be);
+
+        vertex_buffer vbo = new_vbo(vertex_data, 4);
+        vbo.layout = bl;
+        index_buffer ibo = new_ibo(indicies, 6);
+
+        add_vertex_buffer(&gameState->vao, vbo);
+        add_index_buffer(&gameState->vao, ibo);
+
+        gameState->shader = create_shader_program("./res/shader/sprite");
+        gameState->camera = create_camera(0, 0, 16, 9, 1.0f);
+
         add_entity(&gameState->world, create_player(3, 0, 2, "./res/test.png"));
         unsigned int level[9][16] =
           {
@@ -118,4 +147,6 @@ void update(float delta, game_memory *memory)
             camera_follow(&gameState->ctx.camera, gameState->world.entities[i]);
         }
     }
+    vec pos = {2, 2};
+    render_submit(gameState->shader, gameState->camera, gameState->vao, pos);
 }

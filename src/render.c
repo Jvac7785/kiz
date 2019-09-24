@@ -2,13 +2,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-vertex_buffer new_vbo(float *verts, unsigned int size)
+vertex_buffer new_vbo(vec *verts, unsigned int size)
 {
     vertex_buffer result = {0};
 
     glCreateBuffers(1, &result.id);
     glBindBuffer(GL_ARRAY_BUFFER, result.id);
-    glBufferData(GL_ARRAY_BUFFER, size, verts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size * sizeof(verts[0]), verts, GL_STATIC_DRAW);
 }
 
 index_buffer new_ibo(unsigned int *indices, unsigned int count)
@@ -125,14 +125,6 @@ shader create_shader_program(const char *filename)
     return result;
 }
 
-void update_shader(shader shader, vec pos, camera camera)
-{
-    mat4 MVP = create_mat4();//get_model(pos);
-    MVP = multiply_mat4(MVP, camera.viewMatrix);
-    MVP = multiply_mat4(MVP, camera.projectionMatrix);
-    //glUniformMatrix4fv(shader.uniforms[TRANSFORM_U], 1, GL_FALSE, &MVP.e[0]);
-}
-
 texture create_texture(const char *filename)
 {
     int width, height, comp;
@@ -157,3 +149,17 @@ texture create_texture(const char *filename)
     stbi_image_free(data);
 }
 
+void draw_indexed(vertex_array vao)
+{
+    glDrawElements(GL_TRIANGLES, vao.indexBuffer.count, GL_UNSIGNED_INT, NULL);
+}
+
+void render_submit(shader shader, camera camera, vertex_array vao, vec transform)
+{
+    glUseProgram(shader);
+    mat4 view_projection = camera.viewMatrix;
+    view_projection = multiply_mat4(view_projection, camera.projectionMatrix);
+    upload_uniform_mat4(shader, "viewProjection", view_projection);
+    mat4 model = translate_mat4(transform);
+    upload_uniform_mat4(shader, "transform", model);
+}

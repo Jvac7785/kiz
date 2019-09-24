@@ -44,6 +44,9 @@ typedef struct
     context ctx;
 
     world world;
+    vertex_array vao;
+    shader shader;
+    camera camera;
 }game_state;
 
 #endif
