@@ -104,8 +104,8 @@ void update(float delta, game_memory *memory)
         add_vertex_buffer(&gameState->vao, vbo);
         add_index_buffer(&gameState->vao, ibo);
 
-        gameState->shader = create_shader_program("./res/shader/sprite");
-        gameState->camera = create_camera(0, 0, 16, 9, 1.0f);
+        gameState->shader = create_shader_program("./res/shaders/sprite");
+        gameState->camera = create_camera(0, 0, 1, 1, 1.0f);
 
         add_entity(&gameState->world, create_player(3, 0, 2, "./res/test.png"));
         unsigned int level[9][16] =
@@ -147,6 +147,6 @@ void update(float delta, game_memory *memory)
             camera_follow(&gameState->ctx.camera, gameState->world.entities[i]);
         }
     }
-    vec pos = {2, 2};
+    vec pos = {0, 0};
     render_submit(gameState->shader, gameState->camera, gameState->vao, pos);
 }
