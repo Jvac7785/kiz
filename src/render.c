@@ -2,22 +2,57 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+void _CheckGLError(const char* file, int line);
+#define CheckGLError() _CheckGLError(__FILE__, __LINE__)
+
+void _CheckGLError(const char* file, int line)
+{
+    GLenum err = glGetError();
+
+    while ( err != GL_NO_ERROR )
+        {
+            char *error;
+            switch ( err )
+                {
+                case GL_INVALID_OPERATION:  error="INVALID_OPERATION";      break;
+                case GL_INVALID_ENUM:       error="INVALID_ENUM";           break;
+                case GL_INVALID_VALUE:      error="INVALID_VALUE";          break;
+                case GL_OUT_OF_MEMORY:      error="OUT_OF_MEMORY";          break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION:  error="INVALID_FRAMEBUFFER_OPERATION";  break;
+                }
+            printf("GL_%s - %s : %d\n", error, file, line);
+            err = glGetError();
+        }
+
+    return;
+}
+
 vertex_buffer new_vbo(vec *verts, unsigned int size)
 {
     vertex_buffer result = {0};
 
     glCreateBuffers(1, &result.id);
+    CheckGLError();
     glBindBuffer(GL_ARRAY_BUFFER, result.id);
-    glBufferData(GL_ARRAY_BUFFER, size * sizeof(verts[0]), verts, GL_STATIC_DRAW);
+    CheckGLError();
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(verts[0]), verts, GL_STATIC_DRAW);
+    CheckGLError();
+
+    return result;
 }
 
-index_buffer new_ibo(unsigned int *indices, unsigned int count)
+index_buffer new_ibo(unsigned int *indices)
 {
     index_buffer result = {0};
 
     glCreateBuffers(1, &result.id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
+    CheckGLError();
+
+    result.count = 6;
+
+    return result;
 }
 
 vertex_array new_vao()
@@ -27,6 +62,7 @@ vertex_array new_vao()
     glGenVertexArrays(1, &result.id);
     result.vertexBufferIndex = 0;
     result.vertexBuffers = NULL;
+    CheckGLError();
 
     return result;
 }
@@ -48,6 +84,7 @@ void add_vertex_buffer(vertex_array *vao, vertex_buffer buffer)
                               (void *)element.offset
                               );
         vao->vertexBufferIndex++;
+        CheckGLError();
     }
 
     buf_push(vao->vertexBuffers, buffer);
@@ -58,6 +95,7 @@ void add_index_buffer(vertex_array *vao, index_buffer buffer)
     glBindVertexArray(vao->id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.id);
     vao->indexBuffer = buffer;
+    CheckGLError();
 }
 
 void check_shader_error(GLuint shader, GLuint flag, bool isProgram, char *errorMessage)
@@ -151,7 +189,13 @@ texture create_texture(const char *filename)
 
 void draw_indexed(vertex_array vao)
 {
-    glDrawElements(GL_TRIANGLES, vao.indexBuffer.count, GL_UNSIGNED_INT, NULL);
+    glBindVertexArray(vao.id);
+    CheckGLError();
+    //glDrawElements(GL_TRIANGLES, vao.indexBuffer.count, GL_UNSIGNED_INT, NULL);
+    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+    //glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_QUADS, 0, 4);
+    CheckGLError();
 }
 
 void render_submit(shader shader, camera camera, vertex_array vao, vec transform)
@@ -162,4 +206,6 @@ void render_submit(shader shader, camera camera, vertex_array vao, vec transform
     upload_uniform_mat4(shader, "viewProjection", view_projection);
     mat4 model = translate_mat4(transform);
     upload_uniform_mat4(shader, "transform", model);
+
+    draw_indexed(vao);
 }

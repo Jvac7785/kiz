@@ -78,12 +78,12 @@ void update(float delta, game_memory *memory)
         //gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 3.0f));
         gameState->world = init_world();
 
-        vec dim = {3, 3};
+        vec dim = {1, 1};
         vec vertex_data[] = {
-                             {-dim.x / 2.0, -dim.y / 2.0},
-                             {-dim.x / 2.0, dim.y / 2.0},
-                             {dim.x / 2.0, dim.y / 2.0},
-                             {dim.x / 2.0, -dim.y / 2.0}
+                             -dim.x / 2.0, -dim.y / 2.0,
+                             -dim.x / 2.0, dim.y / 2.0,
+                             dim.x / 2.0, dim.y / 2.0,
+                             dim.x / 2.0, -dim.y / 2.0
         };
 
         unsigned int indicies[] = {
@@ -94,18 +94,18 @@ void update(float delta, game_memory *memory)
         gameState->vao = new_vao();
 
         buffer_layout bl = new_buffer_layout();
-        buffer_element be = {.name = "position", .type = FLOAT};
+        buffer_element be = {.name = "position", .type = FLOAT2};
         add_layout(&bl, be);
 
-        vertex_buffer vbo = new_vbo(vertex_data, 4);
+        vertex_buffer vbo = new_vbo(vertex_data, sizeof(vertex_data));
         vbo.layout = bl;
-        index_buffer ibo = new_ibo(indicies, 6);
+        index_buffer ibo = new_ibo(indicies);
 
         add_vertex_buffer(&gameState->vao, vbo);
         add_index_buffer(&gameState->vao, ibo);
 
         gameState->shader = create_shader_program("./res/shaders/sprite");
-        gameState->camera = create_camera(0, 0, 1, 1, 1.0f);
+        gameState->camera = create_camera(0, 0, 2, 1, 1.0f);
 
         add_entity(&gameState->world, create_player(3, 0, 2, "./res/test.png"));
         unsigned int level[9][16] =
