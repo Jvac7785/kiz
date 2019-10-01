@@ -75,78 +75,53 @@ void update(float delta, game_memory *memory)
     game_state *gameState = (game_state *)memory->storage;
     if(!memory->isInit)
     {
-        //gameState->ctx = create_context(create_shader_program("./res/sprite"), create_camera(0, 0, 16, 9, 3.0f));
         gameState->world = init_world();
 
-        vec dim = {1, 1};
+        vec dim = {2, 2};
         vec vertex_data[] = {
-                             -dim.x / 2.0, -dim.y / 2.0,
-                             -dim.x / 2.0, dim.y / 2.0,
-                             dim.x / 2.0, dim.y / 2.0,
-                             dim.x / 2.0, -dim.y / 2.0
+                             {-dim.x / 2.0, -dim.y / 2.0},
+                             {-dim.x / 2.0, dim.y / 2.0},
+                             {dim.x / 2.0, dim.y / 2.0},
+                             {dim.x / 2.0, -dim.y / 2.0}
         };
-
-        unsigned int indicies[] = {
-                                   0, 1, 2,
-                                   2, 3, 0
+        vec tex_coords[] = {
+                            {0, 1},
+                            {0, 0},
+                            {1, 0},
+                            {1, 1}
         };
 
         gameState->vao = new_vao();
 
         buffer_layout bl = new_buffer_layout();
         buffer_element be = {.name = "position", .type = FLOAT2};
+        buffer_layout texLay = new_buffer_layout();
+        buffer_element tex = {.name = "texCoord", .type = FLOAT2};
         add_layout(&bl, be);
+        add_layout(&texLay, tex);
 
         vertex_buffer vbo = new_vbo(vertex_data, sizeof(vertex_data));
         vbo.layout = bl;
-        index_buffer ibo = new_ibo(indicies);
+
+        vertex_buffer texBuf = new_vbo(tex_coords, sizeof(tex_coords));
+        texBuf.layout = texLay;
 
         add_vertex_buffer(&gameState->vao, vbo);
-        add_index_buffer(&gameState->vao, ibo);
+        add_vertex_buffer(&gameState->vao, texBuf);
+
+        gameState->tex = create_texture("./res/test.png");
 
         gameState->shader = create_shader_program("./res/shaders/sprite");
-        gameState->camera = create_camera(0, 0, 2, 1, 1.0f);
+        gameState->camera = create_camera(0, 0, 16, 9, 0.5f);
 
-        add_entity(&gameState->world, create_player(3, 0, 2, "./res/test.png"));
-        unsigned int level[9][16] =
-          {
-           {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-           {1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0},
-           {0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-           {0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-           {0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
-           {0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-           {0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0},
-           {0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-           {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-          };
-        for(int y = 0; y < 9; ++y)
-        {
-            for(int x = 0; x < 16; ++x)
-            {
-                if(level[y][x])
-                {
-                    add_entity(&gameState->world, create_tile(2 * x, 2 * -y, 2.0f, "./res/tile.png"));
-                }
-            }
-        }
         memory->isInit = true;
+        glUseProgram(gameState->shader);
+        upload_uniform_int(gameState->shader, "tex", 0);
     }
 
     update_input(&gameState->input);
 
-    for(int i = 0; i < gameState->world.numEntities; ++i)
-    {
-        if(gameState->world.entities[i].spriteOn)
-        {
-            render_entity(&gameState->ctx, gameState->world.entities[i]);
-        }
-        if(gameState->world.entities[i].playerMove)
-        {
-            player_move(&gameState->world.entities[i], gameState->input, delta);
-            camera_follow(&gameState->ctx.camera, gameState->world.entities[i]);
-        }
-    }
+    glBindTexture(GL_TEXTURE_2D, gameState->tex);
     vec pos = {0, 0};
     render_submit(gameState->shader, gameState->camera, gameState->vao, pos);
 }

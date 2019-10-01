@@ -163,10 +163,8 @@ typedef unsigned int texture;
 
 typedef struct
 {
-    vec pos;
-    mesh mesh;
-    texture texture;
-}sprite;
+    hashmap_map shaders;
+}shader_lib;
 
 typedef struct
 {

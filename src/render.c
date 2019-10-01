@@ -35,7 +35,7 @@ vertex_buffer new_vbo(vec *verts, unsigned int size)
     CheckGLError();
     glBindBuffer(GL_ARRAY_BUFFER, result.id);
     CheckGLError();
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(verts[0]), verts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(verts[0]), verts, GL_STATIC_DRAW);
     CheckGLError();
 
     return result;
@@ -163,6 +163,15 @@ shader create_shader_program(const char *filename)
     return result;
 }
 
+void add_shader(shader_lib *shader, shader shader)
+{
+
+}
+
+shader load_shader(shader_lib shader, char *filepath)
+{
+}
+
 texture create_texture(const char *filename)
 {
     int width, height, comp;
@@ -182,18 +191,15 @@ texture create_texture(const char *filename)
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-    return result;
-
     stbi_image_free(data);
+
+    return result;
 }
 
-void draw_indexed(vertex_array vao)
+void draw_array(vertex_array vao)
 {
     glBindVertexArray(vao.id);
     CheckGLError();
-    //glDrawElements(GL_TRIANGLES, vao.indexBuffer.count, GL_UNSIGNED_INT, NULL);
-    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-    //glDrawArrays(GL_TRIANGLES, 0, 6);
     glDrawArrays(GL_QUADS, 0, 4);
     CheckGLError();
 }
@@ -207,5 +213,5 @@ void render_submit(shader shader, camera camera, vertex_array vao, vec transform
     mat4 model = translate_mat4(transform);
     upload_uniform_mat4(shader, "transform", model);
 
-    draw_indexed(vao);
+    draw_array(vao);
 }

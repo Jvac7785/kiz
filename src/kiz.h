@@ -45,6 +45,7 @@ typedef struct
 
     world world;
     vertex_array vao;
+    texture tex;
     shader shader;
     camera camera;
 }game_state;
