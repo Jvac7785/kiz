@@ -49,7 +49,7 @@ void add_entity(world *world, entity entity)
 
 void render_entity(context *ctx, entity entity)
 {
-    entity.sprite.pos = entity.transform.pos;
+    //entity.sprite.pos = entity.transform.pos;
     //render_sprite(ctx, entity.sprite);
 }
 
@@ -90,6 +90,10 @@ void update(float delta, game_memory *memory)
                             {1, 0},
                             {1, 1}
         };
+        unsigned char indicies[] = {
+                                 0, 1, 2,
+                                 2, 3, 0
+        };
 
         gameState->vao = new_vao();
 
@@ -106,16 +110,22 @@ void update(float delta, game_memory *memory)
         vertex_buffer texBuf = new_vbo(tex_coords, sizeof(tex_coords));
         texBuf.layout = texLay;
 
+        index_buffer ibo = new_ibo(indicies);
+        add_index_buffer(&gameState->vao, ibo);
+
         add_vertex_buffer(&gameState->vao, vbo);
         add_vertex_buffer(&gameState->vao, texBuf);
 
         gameState->tex = create_texture("./res/test.png");
 
-        gameState->shader = create_shader_program("./res/shaders/sprite");
+        gameState->shaders = shader_lib_init();
+
+        add_shader_from_file(&gameState->shaders, "./res/shaders/sprite", "sprite");
+
         gameState->camera = create_camera(0, 0, 16, 9, 0.5f);
 
         memory->isInit = true;
-        glUseProgram(gameState->shader);
+        glUseProgram(load_shader(gameState->shaders, "sprite").id);
         upload_uniform_int(gameState->shader, "tex", 0);
     }
 
@@ -123,5 +133,5 @@ void update(float delta, game_memory *memory)
 
     glBindTexture(GL_TEXTURE_2D, gameState->tex);
     vec pos = {0, 0};
-    render_submit(gameState->shader, gameState->camera, gameState->vao, pos);
+    render_submit(load_shader(gameState->shaders, "sprite"), gameState->camera, gameState->vao, pos);
 }

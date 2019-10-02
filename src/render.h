@@ -1,17 +1,3 @@
-typedef struct
-{
-    enum
-    {
-        POSITION_VB,
-        TEXCOORD_VB,
-        INDICES_VB,
-
-        NUM_BUFFERS
-    };
-    GLuint VAO;
-    GLuint VBO[NUM_BUFFERS];
-}mesh;
-
 enum shader_data_type
 {
  NONE = 0, FLOAT, FLOAT2, FLOAT3, FLOAT4, MAT3, MAT4, INT, INT2, INT3, INT4, BOOL
@@ -136,34 +122,39 @@ typedef struct
     index_buffer indexBuffer;
 }vertex_array;
 
-typedef unsigned int shader;
-
+typedef struct
+{
+    unsigned int id;
+    char *name;
+}shader;
 void upload_uniform_int(shader shader, const char *name, int val)
 {
-    GLint location = glGetUniformLocation(shader, name);
+    GLint location = glGetUniformLocation(shader.id, name);
     glUniform1i(location, val);
 }
 void upload_uniform_float(shader shader, const char *name, float val)
 {
-    GLint location = glGetUniformLocation(shader, name);
+    GLint location = glGetUniformLocation(shader.id, name);
     glUniform1f(location, val);
 }
 void upload_uniform_float2(shader shader, const char *name, vec val)
 {
-    GLint location = glGetUniformLocation(shader, name);
+    GLint location = glGetUniformLocation(shader.id, name);
     glUniform2f(location, val.x, val.y);
 }
 void upload_uniform_mat4(shader shader, const char *name, mat4 val)
 {
-    GLint location = glGetUniformLocation(shader, name);
+    GLint location = glGetUniformLocation(shader.id, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, &val.e[0]);
 }
 
 typedef unsigned int texture;
 
+typedef map_t(shader) shader_map;
+
 typedef struct
 {
-    hashmap_map shaders;
+    shader_map shaders;
 }shader_lib;
 
 typedef struct

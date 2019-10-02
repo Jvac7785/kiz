@@ -97,5 +97,3 @@ char *buf__printf(char *buf, const char *fmt, ...) {
 
 #define each(item, buf) \
     (typeof(*(buf)) *p = (buf), item = *p; p < &((buf)[buf_len(buf)]); p++, (item) = *p)
-
-

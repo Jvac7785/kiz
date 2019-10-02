@@ -9,6 +9,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "map.c"
+
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
 #include "common.c"

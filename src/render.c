@@ -41,7 +41,7 @@ vertex_buffer new_vbo(vec *verts, unsigned int size)
     return result;
 }
 
-index_buffer new_ibo(unsigned int *indices)
+index_buffer new_ibo(unsigned char *indices)
 {
     index_buffer result = {0};
 
@@ -137,10 +137,10 @@ GLuint create_shader(const char *filename, GLenum shaderType)
     return shader;
 }
 
-shader create_shader_program(const char *filename)
+shader create_shader_program(const char *filename, char *name)
 {
-    shader result = 0;
-    result= glCreateProgram();
+    shader result = {0};
+    result.id = glCreateProgram();
 
     char vertbuffer[256];
     strcpy(vertbuffer, filename);
@@ -151,25 +151,42 @@ shader create_shader_program(const char *filename)
     strcat(fragbuffer, ".fs");
     GLuint fragmentShader = create_shader(fragbuffer, GL_FRAGMENT_SHADER);
 
-    glAttachShader(result, vertexShader);
-    glAttachShader(result, fragmentShader);
+    glAttachShader(result.id, vertexShader);
+    glAttachShader(result.id, fragmentShader);
 
-    glLinkProgram(result);
-    check_shader_error(result, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
+    glLinkProgram(result.id);
+    check_shader_error(result.id, GL_LINK_STATUS, true, "ERROR: Shader Program failed to link");
 
-    glValidateProgram(result);
-    check_shader_error(result, GL_VALIDATE_STATUS, true, "ERROR: Shader Program invalid");
+    glValidateProgram(result.id);
+    check_shader_error(result.id, GL_VALIDATE_STATUS, true, "ERROR: Shader Program invalid");
+
+    result.name = name;
 
     return result;
 }
 
-void add_shader(shader_lib *shader, shader shader)
+shader_lib shader_lib_init()
 {
+    shader_map map;
+    map_init(&map);
+    shader_lib result = {.shaders = map};
+    return result;
+}
 
+void add_shader(shader_lib *shader_lib, shader shader)
+{
+    map_set(&shader_lib->shaders, shader.name, shader);
+}
+
+void add_shader_from_file(shader_lib *shader_lib, char *filepath, char *name)
+{
+    shader shader = create_shader_program(filepath, name);
+    add_shader(shader_lib, shader);
 }
 
 shader load_shader(shader_lib shader, char *filepath)
 {
+    return *map_get(&shader.shaders, filepath);
 }
 
 texture create_texture(const char *filename)
@@ -200,13 +217,13 @@ void draw_array(vertex_array vao)
 {
     glBindVertexArray(vao.id);
     CheckGLError();
-    glDrawArrays(GL_QUADS, 0, 4);
+    glDrawElements(GL_TRIANGLES, vao.indexBuffer.count, GL_UNSIGNED_BYTE, NULL);
     CheckGLError();
 }
 
 void render_submit(shader shader, camera camera, vertex_array vao, vec transform)
 {
-    glUseProgram(shader);
+    glUseProgram(shader.id);
     mat4 view_projection = camera.viewMatrix;
     view_projection = multiply_mat4(view_projection, camera.projectionMatrix);
     upload_uniform_mat4(shader, "viewProjection", view_projection);

@@ -23,7 +23,7 @@ typedef struct
     transform transform;
     bool transformOn;
 
-    sprite sprite;
+    //sprite sprite;
     bool spriteOn;
 
     float speed;
@@ -47,6 +47,7 @@ typedef struct
     vertex_array vao;
     texture tex;
     shader shader;
+    shader_lib shaders;
     camera camera;
 }game_state;
 
