@@ -150,6 +150,15 @@ void upload_uniform_mat4(shader shader, const char *name, mat4 val)
 
 typedef unsigned int texture;
 
+typedef struct
+{
+    unsigned int texture;
+    int width;
+    int height;
+    int tileWidth;
+    int tileHeight;
+}texture_atlas;
+
 typedef map_t(shader) shader_map;
 
 typedef struct
@@ -157,8 +166,4 @@ typedef struct
     shader_map shaders;
 }shader_lib;
 
-typedef struct
-{
-    shader shader;
-    camera camera;
-}context;
+

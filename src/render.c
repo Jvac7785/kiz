@@ -213,6 +213,35 @@ texture create_texture(const char *filename)
     return result;
 }
 
+texture_atlas create_atlas(const char *filename, int tileWidth, int tileHeight)
+{
+    int width, height, comp;
+    unsigned char *data = stbi_load(filename, &width, &height, &comp, 4);
+
+    if(data == NULL)
+    {
+        log_fatal("Cannot load texture atlas: %s\n", filename);
+    }
+
+    texture_atlas result = {0};
+    glGenTextures(1, &result.texture);
+    glBindTexture(GL_TEXTURE_2D, result.texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    stbi_image_free(data);
+
+    result.width = width;
+    result.height = height;
+    result.tileWidth = tileWidth;
+    result.tileHeight = tileHeight;
+
+    return result;
+}
+
 void draw_array(vertex_array vao)
 {
     glBindVertexArray(vao.id);
@@ -231,4 +260,47 @@ void render_submit(shader shader, camera camera, vertex_array vao, vec transform
     upload_uniform_mat4(shader, "transform", model);
 
     draw_array(vao);
+}
+
+vertex_array create_textured_quad(float x, float y)
+{
+    vec dim = {x, y};
+    vec vertex_data[] = {
+                         {-dim.x / 2.0, -dim.y / 2.0},
+                         {-dim.x / 2.0, dim.y / 2.0},
+                         {dim.x / 2.0, dim.y / 2.0},
+                         {dim.x / 2.0, -dim.y / 2.0}
+    };
+    vec tex_coords[] = {
+                        {0, 1},
+                        {0, 0},
+                        {1, 0},
+                        {1, 1}
+    };
+    unsigned char indicies[] = {
+                                0, 1, 2,
+                                2, 3, 0
+    };
+    vertex_array vao = new_vao();
+
+    buffer_layout bl = new_buffer_layout();
+    buffer_element be = {.name = "position", .type = FLOAT2};
+    buffer_layout texLay = new_buffer_layout();
+    buffer_element tex = {.name = "texCoord", .type = FLOAT2};
+    add_layout(&bl, be);
+    add_layout(&texLay, tex);
+
+    vertex_buffer vbo = new_vbo(vertex_data, sizeof(vertex_data));
+    vbo.layout = bl;
+
+    vertex_buffer texBuf = new_vbo(tex_coords, sizeof(tex_coords));
+    texBuf.layout = texLay;
+
+    index_buffer ibo = new_ibo(indicies);
+    add_index_buffer(&vao, ibo);
+
+    add_vertex_buffer(&vao, vbo);
+    add_vertex_buffer(&vao, texBuf);
+
+    return vao;
 }

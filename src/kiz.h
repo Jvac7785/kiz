@@ -1,8 +1,6 @@
 #ifndef KIZ_H
 #define KIZ_H
 
-#define MAX_ENTITY 1024
-
 typedef struct
 {
     bool isInit;
@@ -12,43 +10,35 @@ typedef struct
 
 typedef struct
 {
+    vertex_array vao;
+    texture tex;
+}sprite;
+
+//TODO: This is temperary until i implement sprite sheets
+sprite create_sprite(float size, char *filepath)
+{
+    return (sprite) {.vao = create_textured_quad(2, 2), .tex = create_texture(filepath)};
+}
+
+void draw_sprite(shader_lib shader, camera c, sprite s, vec pos)
+{
+    glBindTexture(GL_TEXTURE_2D, s.tex);
+    render_submit(load_shader(shader, "sprite"), c, s.vao, pos);
+}
+
+typedef struct
+{
+    sprite sprite;
     vec pos;
-    vec dim;
-}transform;
-
-typedef struct
-{
-    unsigned int id;
-    // Have all components possible here
-    transform transform;
-    bool transformOn;
-
-    //sprite sprite;
-    bool spriteOn;
-
-    float speed;
-
-    bool playerMove;
-}entity;
-
-typedef struct
-{
-    unsigned int numEntities;
-
-    entity entities[MAX_ENTITY];
-}world;
+}tile;
 
 typedef struct
 {
     input input;
-    context ctx;
 
-    world world;
-    vertex_array vao;
-    texture tex;
-    shader shader;
     shader_lib shaders;
     camera camera;
+    tile tiles[9][16];
 }game_state;
 
 #endif
